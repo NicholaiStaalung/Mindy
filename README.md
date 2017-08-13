@@ -49,14 +49,16 @@ nn = NeuralNetwork(inputM, outputM, neurons, learningRate)
 ### 4th step 
 Train the neural network with a given set of iterations
 
+Example
 ```
 nn.train(10000)
 ```
 
 
 ### 5th step
-Predict an outcome
+Predict an outcome from a given situation
 
+Example
 ```
 nn.predict([1,1,1])
 ```
