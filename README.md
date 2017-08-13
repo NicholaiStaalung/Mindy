@@ -56,9 +56,9 @@ nn.train(10000)
 
 
 ### 5th step
-Predict an outcome from a given situation
+Predict an outcome from a given situation 
 
-Example
+Example (Should predict 1 in this case)
 ```
 nn.predict([1,1,1])
 ```
