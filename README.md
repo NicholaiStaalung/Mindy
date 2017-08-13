@@ -9,7 +9,7 @@ This is a hobby project. It will be updated regularly, since its still under con
 Clone or fork the repo
 
 ### 1st step
-Organize a (n x m) numpy array of explanatory variables as input data (vertical rows and horizontal columns) and a (n x 1) numpy array of response variable as output data
+Organize a (n x m) numpy array of explanatory variables as input data (vertical rows and horizontal columns) and a (n x 1) numpy array as response variable with output data
 
 Example
 ```
