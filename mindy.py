@@ -14,15 +14,15 @@ class NeuralNetwork():
     def __init__(self, inputData, outputData, neurons, learningRate):
         """initializor, take input and output data and constructs a numpy array, and accepts the amount of intitial neurons"""
         try:
-            self.inputM = np.matrix(inputM)
-            self.outputM = np.matrix(outputM)
+            self.inputM = np.matrix(inputData)
+            self.outputM = np.matrix(outputData)
             self.learningRate = learningRate
-        except:
-            print "Cant process input and output data, check validity"
+        except Exception as err:
+            traceback.print_exc()
         try:
             self.neurons = int(neurons)
-        except:
-            print "define neurons as integers"
+        except Exception as err:
+            traceback.print_exc()
         
 
         
