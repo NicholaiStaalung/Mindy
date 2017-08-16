@@ -1,6 +1,6 @@
-# Mindy - a Neural Network 
+# Mindy 
 
-A simple neural network - currently with only one hidden layer.
+A binary multilayer recurrent neural network - currently with only one hidden layer.
 
 This is a hobby project. It will be updated regularly, since its still under construction
 
