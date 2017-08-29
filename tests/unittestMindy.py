@@ -1,19 +1,19 @@
 import unittest
-import sys
-sys.path.append('C:\Python27')
-from mysqlQ.mysqlScript import mysqlQuery
-from Mindy.mindy import Mindy
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from mindy import Mindy
 import numpy as np
 
 class TestMindy(unittest.TestCase):
     
     def assign_io_data(self):
-    
+        
+        
         self.inputM = np.array([
         [0, 0, 0],
         [1, 1, 1],
         [1, 0, 1],
-        [0, 0, 0],
+        [0, 0, 1],
         [1, 1, 1]
         ])
     
@@ -24,6 +24,7 @@ class TestMindy(unittest.TestCase):
         [0],
         [1]
         ])
+        
 
     
 
@@ -117,9 +118,38 @@ class TestMindy(unittest.TestCase):
         _mindSingle.inputLayerBackward()
         _mindSingle.adjustWeights()
         _mindSingle.train(10)
+        #print _mindSingle.weightsMatrix.shape
         self.assertEqual(_mindSingle.hiddenWeights.shape, _initialHiddenWeights.shape)
         
+    def test_single_error_greaterZero(self):
+        self.assign_io_data()
+        _neurons = 1000
+        _mindSingle = Mindy(self.inputM, self.outputM, _neurons, 0.1)
+        _mindSingle.randomInputWeights()
+        _initialHiddenWeights = _mindSingle.hiddenWeights
+        _mindSingle.hiddenLayerSumForward()
+        _mindSingle.outputSum()
+        _mindSingle.hiddenLayerBackward()
+        _mindSingle.inputLayerBackward()
+        _mindSingle.adjustWeights()
+        _mindSingle.train(100)
+        self.assertGreater(_mindSingle.modelError(), 0)
         
+    def test_single_error_oneLower(self):
+        self.assign_io_data()
+        _neurons = 1000
+        _mindSingle = Mindy(self.inputM, self.outputM, _neurons, 0.1)
+        _mindSingle.randomInputWeights()
+        _initialHiddenWeights = _mindSingle.hiddenWeights
+        _mindSingle.hiddenLayerSumForward()
+        _mindSingle.outputSum()
+        _mindSingle.hiddenLayerBackward()
+        _mindSingle.inputLayerBackward()
+        _mindSingle.adjustWeights()
+        _mindSingle.train(100)
+        print _mindSingle.modelError()
+        self.assertLess(_mindSingle.modelError(), 1)
+
 if __name__ == "__main__":
     unittest.main()
     
