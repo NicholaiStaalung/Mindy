@@ -50,9 +50,9 @@ nn = NeuralNetwork(inputM, outputM, neurons, learningRate)
 ```
 
 Categorial output (3 or more categories)
-´´´
+```
 nn = NeuralNetwork(inputM, outputM, neurons, learningRate, multinomial='ovr')
-´´´ 
+```
 ### 4th step 
 Train the neural network with a given set of iterations
 
