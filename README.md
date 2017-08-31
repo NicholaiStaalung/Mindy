@@ -65,7 +65,7 @@ nn.train(10000)
 ### 5th step
 Predict an outcome from a given situation 
 
-Example (Should predict 1 in this case)
+Example (Should predict 1 in the binary case with the I/O variables in step 1)
 ```
 nn.predict([1,1,1])
 ```
