@@ -123,7 +123,7 @@ class TestMindy(unittest.TestCase):
         
     def test_single_error_greaterZero(self):
         self.assign_io_data()
-        _neurons = 1000
+        _neurons = 10
         _mindSingle = Mindy(self.inputM, self.outputM, _neurons, 0.1)
         _mindSingle.randomInputWeights()
         _initialHiddenWeights = _mindSingle.hiddenWeights
@@ -137,7 +137,7 @@ class TestMindy(unittest.TestCase):
         
     def test_single_error_oneLower(self):
         self.assign_io_data()
-        _neurons = 1000
+        _neurons = 10
         _mindSingle = Mindy(self.inputM, self.outputM, _neurons, 0.1)
         _mindSingle.randomInputWeights()
         _initialHiddenWeights = _mindSingle.hiddenWeights
@@ -147,7 +147,7 @@ class TestMindy(unittest.TestCase):
         _mindSingle.inputLayerBackward()
         _mindSingle.adjustWeights()
         _mindSingle.train(100)
-        print _mindSingle.modelError()
+        print _mindSingle.predict([1,1,1])
         self.assertLess(_mindSingle.modelError(), 1)
 
 if __name__ == "__main__":

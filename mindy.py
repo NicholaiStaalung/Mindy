@@ -135,19 +135,40 @@ class Mindy():
                 except Exception as err:
                     traceback.print_exc()
                     raise ValueError('Input for prediction does not match number of input variables in the network')
-                _predValue = 0
-                #for _i in _hiddenOutput:
-                    #pass
+            _predVal = {'Prediction' : 0, 'Likelihood': 0}
+            _index = self.unique
+            if len(_hiddenToOutput.T) == len(_index):
+                for _i, _j in zip(_hiddenToOutput.T, _index):
+                    if 0.5 <= _i and 1 >= _i:
+                        if _predVal['Prediction'] == 0:
+                            _predVal['Prediction'], _predVal['Likelihood'] = _j, round(_i.item(), 3) 
+                        elif _predVal['Prediction'] != 0 and _predVal['Likelihood'] < _i:
+                            _predVal['Prediction'], _predVal['Likelihood'] = _j, round(_i.item(), 3)
+                        elif _predVal['Prediction'] != 0 and _predVal['Likelihood'] == _i:
+                            raise ValueError('Prediction error, two values are predicted equally')
+                    elif _j == 0 and _i < 0.5:
+                        _predVal['Likelihood'] = round(_i.item(), 3)
+                    
+                    
+            else:
+                raise ValueError('Predction problem, trying to predict a value, that doesnt exist')
+                        
+                        
                     #Add the looping to choose the highest value if it is larger than 0.5, otherwise choose 0 sa prediction value
         elif not self.ovr:
             try: 
                 _inputToHidden = sigmoid(np.matrix(_input) * self.weightsMatrix)
                 _hiddenToOutput = sigmoid(_inputToHidden * self.hiddenWeights)
+                _predVal = {'Prediction' : 0, 'Likelihood': 0}
+                if _hiddenToOutput < 0.5:
+                    _predVal['Likelihood'] = round(_hiddenToOutput.item(), 3)
+                elif _hiddenToOutput >= 0.5:
+                    _predVal['Prediction'], _predVal['Likelihood'] = 1, round(_hiddenToOutput.item(), 3)
             except Exception as err:
                 traceback.print_exc()
                 raise ValueError('Input for prediction does not match number of input variables in the network')
         
-        return _hiddenToOutput
+        return _predVal, _hiddenToOutput
     
     def modelError(self):
         """Computates the root-mean-squared error for the network. The lower the better"""
@@ -164,10 +185,10 @@ class Mindy():
         
     def oneVsRestCategorial(self, _output):
         """If the input is categorial, and "one vs rest" is the desired analysis"""
-        _unique, _counts = np.unique(_output, return_counts=True)
-        _uniqueCounts = dict(zip(_unique, _counts))
+        self.unique, _counts = np.unique(_output, return_counts=True)
+        _uniqueCounts = dict(zip(self.unique, _counts))
         _m = 0 #Indicator for prepping the matrix or stacking the matrix
-        for _p in _unique:
+        for _p in self.unique:
             _j = 0
             _prepForBin = np.copy(_output)
             for _i in _prepForBin:
@@ -182,7 +203,7 @@ class Mindy():
             else:
                 _prepBinForMatrix = np.hstack((_prepBinForMatrix, _prepForBin))
         self.outputOvr = np.matrix(_prepBinForMatrix)
-        self.yCats = len(_unique)
+        self.yCats = len(self.unique)
        
             
                 
