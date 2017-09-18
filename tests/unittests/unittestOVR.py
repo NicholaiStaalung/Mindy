@@ -9,6 +9,7 @@ import unittest
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 from mindy import Mindy
 import numpy as np
 from mysqlQ.mysqlScript import mysqlQuery
@@ -45,7 +46,7 @@ class TestOvrMindy(unittest.TestCase):
         _mind = Mindy(self.inputM, self.outputM, 500, 0.1, multinomial='ovr')
         
         _unique, _counts = np.unique(self.outputM, return_counts=True)
-        _len = len(_mind.outputOvr.T)
+        _len = len(_mind.OVR.outputOvr.T)
         self.assertEqual(_len, len(_unique))
         
     def test_ovrOutputVectors(self):
@@ -68,9 +69,9 @@ class TestOvrMindy(unittest.TestCase):
         _predictionObs = [1,1,1] #remember the bias beta_0
         
         _i = 0
-        while _i < len(_mind.outputOvr.T):
+        while _i < len(_mind.OVR.outputOvr.T):
             
-            _outSingle = np.array(_mind.outputOvr[:, _i])
+            _outSingle = np.array(_mind.OVR.outputOvr[:, _i])
             
             #Single
             _mindSingle = Mindy(self.inputM, _outSingle, _neurons, 0.1)
@@ -80,7 +81,7 @@ class TestOvrMindy(unittest.TestCase):
                 _singlePredict = _mindSingle.predict(_predictionObs)
             elif _i > 0:
                 _singlePredict = np.hstack((_singlePredict, _mindSingle.predict(_predictionObs)))
-            if len(_mind.outputOvr.T) <= 2:
+            if len(_mind.OVR.outputOvr.T) < 3:
                 raise ValueError ('Doesnt make sense with less than three variabels')
                 exit
             _i += 1

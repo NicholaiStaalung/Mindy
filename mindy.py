@@ -1,22 +1,17 @@
 import numpy as np
 import traceback
+from lib.feeder import Feeder
+from lib.ovr import OVR
+from lib.helper.functions import sigmoid, costFunction
 
-def sigmoid(y):
-    """helper function to calculate sigmoid"""
-    _sigmoid = 1 / (1 + np.matrix(np.exp(-y)))
-    return _sigmoid
-
-def dsigmoid(x):
-    """sigmoid prime"""
-    return x * (1 - x.T)
 
 class Mindy():
     """Class for a simple neural network, Still under construction. NB: Only one hidden layer"""
     def __init__(self, inputData, outputData, neurons, learningRate, **kwargs):
         """initializor, take input and output data and constructs a numpy array, and accepts the amount of intitial neurons"""
         try:
-            self.inputM = np.matrix(inputData)
-            self.outputM = np.matrix(outputData)
+            self.inputM = inputData
+            self.outputM = outputData
             self.learningRate = learningRate
         except Exception as err:
             traceback.print_exc()
@@ -32,86 +27,51 @@ class Mindy():
                 if key == 'multinomial':
                     if value == 'ovr':
                         self.ovr = True
-                        self.oneVsRestCategorial(np.array(self.outputM))
+                        self.OVR = OVR(self)
+                        self.OVR.oneVsRestCategorial(np.array(self.outputM))
         except Exception as err:
             traceback.print_exc()
-            
-        
-
-        
-    def randomInputWeights(self):
-        """If first iteration, this creates random input weights"""
-        self.mu, self.sigma = 0, 0.1 # mean and standard deviation
-        _weights = np.random.normal(self.mu, self.sigma, len(self.inputM.T) * self.neurons)
-        self.weightsMatrix = np.matrix(_weights).reshape(len(self.inputM.T), self.neurons)
-        _hiddenWeights = np.random.normal(self.mu, self.sigma, self.neurons)[np.newaxis, :]
-        self.hiddenWeights = np.matrix(_hiddenWeights).T #One column for n neurons
     
-    def hiddenLayerSumForward(self):
-        """Calculates the hidden inputs based on the weights and initial inputs as part of a forward propagation 1st step"""
-        self.inputHidden = self.inputM * self.weightsMatrix
-        self.hiddenLayerResult = sigmoid(self.inputHidden)
-        self.sumOfHiddenLayer =  self.hiddenLayerResult * self.hiddenWeights
-        self.predictedOutput = sigmoid(self.sumOfHiddenLayer)
-        self.outputSum()
-        
-    def outputSum(self):
-        """Calculates the outut som from the hidden layer"""
-        self.residual = self.outputM - self.predictedOutput
-        self.deltaOutputSum =  dsigmoid(sigmoid(self.sumOfHiddenLayer)) * self.residual
-        self.hiddenLayerBackward()
-    
-    def hiddenLayerBackward(self):
-        """calculates new hidden weights as part of the backward propagation"""
-        self.deltaHiddenChange = self.hiddenLayerResult.T * self.deltaOutputSum * self.learningRate
-        self.inputLayerBackward()
-            
-    def inputLayerBackward(self):
-        """Calculates the new and hopefully improved initial input weights as part of the backward propagation"""
-        self.deltaInputSum = (self.deltaOutputSum * self.hiddenWeights.T) * dsigmoid(sigmoid(self.inputHidden.T)).T
-        self.deltaInputChange = self.inputM.T * self.deltaInputSum * self.learningRate
-        self.adjustWeights()
-        
-    def adjustWeights(self):
-        self.hiddenWeights += self.deltaHiddenChange
-        self.weightsMatrix += self.deltaInputChange
-
+  
     def train(self, _iterations):
         """Thinker for the mind""" 
         try:
+            self.Feeder = Feeder(self)
+            self.Feeder.randomWeights()
             if self.ovr:
+                self.yCats = self.OVR.yCats
                 _i = 0
                 while _i < self.yCats:
-                    self.randomInputWeights()
-                    self.outputM = self.outputOvr[:, _i]
+                
+                    self.outputM = self.OVR.outputOvr[:, _i]
                     self.trainingIterations(_iterations)
                     if _i == 0:
-                        self.weightsOvr = np.array(self.weightsMatrix)
-                        self.hiddenWeightsOvr = np.array(self.hiddenWeights)
+                        self.weightsOvr = np.array(self.Feeder.inputWeights)
+                        self.hiddenOneWeightsOvr = np.array(self.Feeder.hiddenOneWeights)
                     elif _i > 0:
                         try:
-                            self.weightsOvr = np.stack((self.weightsOvr, np.array(self.weightsMatrix)), axis=0)
-                            self.hiddenWeightsOvr = np.stack((self.hiddenWeightsOvr, np.array(self.hiddenWeights)), axis=0)
+                            self.weightsOvr = np.stack((self.weightsOvr, np.array(self.Feeder.inputWeights)), axis=0)
+                            self.hiddenOneWeightsOvr = np.stack((self.hiddenOneWeightsOvr, np.array(self.Feeder.hiddenOneWeights)), axis=0)
                         except:
-                            self.weightsOvr = np.concatenate((self.weightsOvr, np.array(self.weightsMatrix)[np.newaxis, :]), axis=0)
-                            self.hiddenWeightsOvr = np.concatenate((self.hiddenWeightsOvr, np.array(self.hiddenWeights)[np.newaxis, :]), axis=0)
+                            self.weightsOvr = np.concatenate((self.weightsOvr, np.array(self.Feeder.inputWeights)[np.newaxis, :]), axis=0)
+                            self.hiddenOneWeightsOvr = np.concatenate((self.hiddenOneWeightsOvr, np.array(self.Feeder.hiddenOneWeights)[np.newaxis, :]), axis=0)
                     _i += 1
             if not self.ovr:
-                self.randomInputWeights()
                 self.trainingIterations(_iterations)
 
         except Exception as err:
             traceback.print_exc()
 
-        self.yhat = np.mean(self.predictedOutput, axis=0)
-        self.residual = np.mean(self.residual, axis=0)
+        self.yhat = np.mean(self.Feeder.predictedOutput, axis=0)
+        self.residual = np.mean(self.Feeder.residual, axis=0)
 
     def trainingIterations(self, _iterations):
         """For training iterations"""
         _i = 0
         while _i < _iterations:
             try:
-                self.hiddenLayerSumForward()
+                self.Feeder.feedForward(self.inputM, self.outputM)
+                self.Feeder.feedBackwards(self.learningRate)
 
             except Exception as err:
                 traceback.print_exc()
@@ -127,16 +87,16 @@ class Mindy():
                 try:
                     _inputToHidden = sigmoid(np.matrix(_input) * self.weightsOvr[_i, :, :])
                     if _i == 0:
-                        _hiddenToOutput = sigmoid(_inputToHidden * self.hiddenWeightsOvr[_i, :, :])
+                        _hiddenToOutput = sigmoid(_inputToHidden * self.hiddenOneWeightsOvr[_i, :, :])
                     elif _i > 0:
-                        _hiddenToOutput = np.hstack((_hiddenToOutput, sigmoid(_inputToHidden * self.hiddenWeightsOvr[_i, :, :])))
+                        _hiddenToOutput = np.hstack((_hiddenToOutput, sigmoid(_inputToHidden * self.hiddenOneWeightsOvr[_i, :, :])))
                     _i += 1
                     
                 except Exception as err:
                     traceback.print_exc()
                     raise ValueError('Input for prediction does not match number of input variables in the network')
             _predVal = {'Prediction' : 0, 'Likelihood': 0}
-            _index = self.unique
+            _index = self.OVR.unique
             if len(_hiddenToOutput.T) == len(_index):
                 for _i, _j in zip(_hiddenToOutput.T, _index):
                     if 0.5 <= _i and 1 >= _i:
@@ -157,8 +117,8 @@ class Mindy():
                     #Add the looping to choose the highest value if it is larger than 0.5, otherwise choose 0 sa prediction value
         elif not self.ovr:
             try: 
-                _inputToHidden = sigmoid(np.matrix(_input) * self.weightsMatrix)
-                _hiddenToOutput = sigmoid(_inputToHidden * self.hiddenWeights)
+                _inputToHidden = sigmoid(np.matrix(_input) * self.Feeder.inputWeights)
+                _hiddenToOutput = sigmoid(_inputToHidden * self.Feeder.hiddenOneWeights)
                 _predVal = {'Prediction' : 0, 'Likelihood': 0}
                 if _hiddenToOutput < 0.5:
                     _predVal['Likelihood'] = round(_hiddenToOutput.item(), 3)
@@ -170,42 +130,16 @@ class Mindy():
         
         return _predVal, _hiddenToOutput
     
-    def modelError(self):
-        """Computates the root-mean-squared error for the network. The lower the better"""
-        
-        if self.ovr:
-            pass
-        elif not self.ovr:
-            _numerator = np.sum(self.residual)**2
-            _denominator = np.sum(self.predictedOutput - self.outputM)**2
-            _rmse = _numerator / _denominator
-            _error = _rmse
-        return _error
         
         
-    def oneVsRestCategorial(self, _output):
-        """If the input is categorial, and "one vs rest" is the desired analysis"""
-        self.unique, _counts = np.unique(_output, return_counts=True)
-        _uniqueCounts = dict(zip(self.unique, _counts))
-        _m = 0 #Indicator for prepping the matrix or stacking the matrix
-        for _p in self.unique:
-            _j = 0
-            _prepForBin = np.copy(_output)
-            for _i in _prepForBin:
-                if _i != _p:
-                    _prepForBin[_j] = 0
-                else:
-                    _prepForBin[_j] = 1
-                _j += 1
-            if _m == 0:
-                _prepBinForMatrix = np.array(_prepForBin)
-                _m += 1
-            else:
-                _prepBinForMatrix = np.hstack((_prepBinForMatrix, _prepForBin))
-        self.outputOvr = np.matrix(_prepBinForMatrix)
-        self.yCats = len(self.unique)
+
        
-            
                 
-                
-            
+        
+        
+        
+        
+        
+        
+        
+        
