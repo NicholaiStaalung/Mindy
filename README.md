@@ -13,7 +13,7 @@ Organize a (n x m) numpy array of explanatory variables as input data (vertical 
 
 If outout varaiables are not binary, add the OVR module, for One Vs Rest. 
 
-Example with binary outpu variable
+Example with binary output variable
 ```
 inputM = np.array([
     [0, 0, 0],
@@ -46,12 +46,12 @@ Prepare the neural network
 
 Binary output
 ```
-nn = NeuralNetwork(inputM, outputM, neurons, learningRate) 
+nn = Mindy(inputM, outputM, neurons, learningRate) 
 ```
 
 Categorial output (3 or more categories)
 ```
-nn = NeuralNetwork(inputM, outputM, neurons, learningRate, multinomial='ovr')
+nn = Mindy(inputM, outputM, neurons, learningRate, multinomial='ovr')
 ```
 ### 4th step 
 Train the neural network with a given set of iterations
@@ -73,6 +73,6 @@ nn.predict([1,1,1])
 ### 6th step
 Get the model error (The lower the better)
 ```
-nn.modelError()
+nn.MindyErrors.modelError()
 ```
 
