@@ -3,6 +3,8 @@ import traceback
 from lib.feeder import Feeder
 from lib.ovr import OVR
 from lib.helper.functions import sigmoid, costFunction
+from lib.predictor import Predictor
+
 
 
 class Mindy():
@@ -36,28 +38,37 @@ class Mindy():
     def train(self, _iterations):
         """Thinker for the mind""" 
         try:
-            self.Feeder = Feeder(self)
-            self.Feeder.randomWeights()
+
             if self.ovr:
                 self.yCats = self.OVR.yCats
                 _i = 0
                 while _i < self.yCats:
-                
+                    """Adding 3 dimensional matrices as weigths with shape in 3rd dim corresponding to number of categories"""
+                    self.Feeder = Feeder(self)
+                    self.Feeder.randomWeights()
                     self.outputM = self.OVR.outputOvr[:, _i]
                     self.trainingIterations(_iterations)
+                    
                     if _i == 0:
                         self.weightsOvr = np.array(self.Feeder.inputWeights)
                         self.hiddenOneWeightsOvr = np.array(self.Feeder.hiddenOneWeights)
+                    
                     elif _i > 0:
-                        try:
+                        try: #because stack does not let you add a 2 dim to a 3 dim, but concatenate will. Stack only adds a new dim
                             self.weightsOvr = np.stack((self.weightsOvr, np.array(self.Feeder.inputWeights)), axis=0)
                             self.hiddenOneWeightsOvr = np.stack((self.hiddenOneWeightsOvr, np.array(self.Feeder.hiddenOneWeights)), axis=0)
                         except:
                             self.weightsOvr = np.concatenate((self.weightsOvr, np.array(self.Feeder.inputWeights)[np.newaxis, :]), axis=0)
                             self.hiddenOneWeightsOvr = np.concatenate((self.hiddenOneWeightsOvr, np.array(self.Feeder.hiddenOneWeights)[np.newaxis, :]), axis=0)
+                    
                     _i += 1
             if not self.ovr:
+                self.Feeder = Feeder(self)
+                self.Feeder.randomWeights()
                 self.trainingIterations(_iterations)
+
+
+
 
         except Exception as err:
             traceback.print_exc()
@@ -85,40 +96,44 @@ class Mindy():
             _i = 0
             while _i < self.yCats:
                 try:
-                    _inputToHidden = sigmoid(np.matrix(_input) * self.weightsOvr[_i, :, :])
+                    _predict = Predictor(self)
                     if _i == 0:
-                        _hiddenToOutput = sigmoid(_inputToHidden * self.hiddenOneWeightsOvr[_i, :, :])
+                        _hiddenToOutput = _predict.calcOutput(_input, self.weightsOvr[_i, :, :], self.hiddenOneWeightsOvr[_i, :, :])
+                        
                     elif _i > 0:
-                        _hiddenToOutput = np.hstack((_hiddenToOutput, sigmoid(_inputToHidden * self.hiddenOneWeightsOvr[_i, :, :])))
+                        _hiddenToOutput = np.hstack((_hiddenToOutput, _predict.calcOutput(_input, self.weightsOvr[_i, :, :], self.hiddenOneWeightsOvr[_i, :, :])))
                     _i += 1
                     
                 except Exception as err:
                     traceback.print_exc()
-                    raise ValueError('Input for prediction does not match number of input variables in the network')
+                    raise ValueError('Error: %s -Input for prediction does not match number of input variables in the network' %(err))
+            print _hiddenToOutput
+
             _predVal = {'Prediction' : 0, 'Likelihood': 0}
             _index = self.OVR.unique
             if len(_hiddenToOutput.T) == len(_index):
                 for _i, _j in zip(_hiddenToOutput.T, _index):
                     if 0.5 <= _i and 1 >= _i:
-                        if _predVal['Prediction'] == 0:
+                        
+                        if _j > 0: #We are only returning the highest predicted value
                             _predVal['Prediction'], _predVal['Likelihood'] = _j, round(_i.item(), 3) 
                         elif _predVal['Prediction'] != 0 and _predVal['Likelihood'] < _i:
                             _predVal['Prediction'], _predVal['Likelihood'] = _j, round(_i.item(), 3)
                         elif _predVal['Prediction'] != 0 and _predVal['Likelihood'] == _i:
                             raise ValueError('Prediction error, two values are predicted equally')
+                        
+                        print _j
                     elif _j == 0 and _i < 0.5:
                         _predVal['Likelihood'] = round(_i.item(), 3)
                     
-                    
             else:
                 raise ValueError('Predction problem, trying to predict a value, that doesnt exist')
-                        
+        
                         
                     #Add the looping to choose the highest value if it is larger than 0.5, otherwise choose 0 sa prediction value
         elif not self.ovr:
             try: 
-                _inputToHidden = sigmoid(np.matrix(_input) * self.Feeder.inputWeights)
-                _hiddenToOutput = sigmoid(_inputToHidden * self.Feeder.hiddenOneWeights)
+                _hiddenToOutput = Predictor(self).calcOutput(_input, self.Feeder.inputWeights, self.Feeder.hiddenOneWeights)
                 _predVal = {'Prediction' : 0, 'Likelihood': 0}
                 if _hiddenToOutput < 0.5:
                     _predVal['Likelihood'] = round(_hiddenToOutput.item(), 3)
@@ -126,9 +141,10 @@ class Mindy():
                     _predVal['Prediction'], _predVal['Likelihood'] = 1, round(_hiddenToOutput.item(), 3)
             except Exception as err:
                 traceback.print_exc()
-                raise ValueError('Input for prediction does not match number of input variables in the network')
+                raise ValueError('Error: %s - Input for prediction does not match number of input variables in the network' %(err))
+        return _predVal
+    
         
-        return _predVal, _hiddenToOutput
     
         
         

@@ -11,6 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 from mindy import Mindy
+from lib.helper.functions import sigmoid
 import numpy as np
 from mysqlQ.mysqlScript import mysqlQuery
 
@@ -24,12 +25,13 @@ class TestOvrMindy(unittest.TestCase):
         
         
         self.inputM = np.array([
-        [0, 0, 0],
-        [1, 1, 1],
+        [1, 0, 0],
+        [1, 1, 0],
         [1, 0, 1],
-        [0, 0, 1],
-        [1, 1, 1]
+        [1, 1, 1],
+        [1, 0, 1]
         ])
+    
     
         self.outputM = np.array([
         [0],
@@ -39,7 +41,7 @@ class TestOvrMindy(unittest.TestCase):
         [1]
         ])
         
-        
+    """   
     def test_ovr(self):
 
         self.assign_io_data()
@@ -54,14 +56,14 @@ class TestOvrMindy(unittest.TestCase):
         _mind = Mindy(self.inputM, self.outputM, 500, 0.1, multinomial='ovr')
         
 
-    
+    """
     def test_ovrVsSingle(self):
         
         
         self.assign_io_data()
         #OVR
-        _neurons = 1
-        _trainingIt = 1
+        _neurons = 20
+        _trainingIt = 1000
         _mind = Mindy(self.inputM, self.outputM, _neurons, 0.1, multinomial='ovr')
 
         
@@ -69,9 +71,11 @@ class TestOvrMindy(unittest.TestCase):
         _predictionObs = [1,1,1] #remember the bias beta_0
         
         _i = 0
+        
         while _i < len(_mind.OVR.outputOvr.T):
             
             _outSingle = np.array(_mind.OVR.outputOvr[:, _i])
+
             
             #Single
             _mindSingle = Mindy(self.inputM, _outSingle, _neurons, 0.1)
@@ -80,14 +84,25 @@ class TestOvrMindy(unittest.TestCase):
             if _i == 0:
                 _singlePredict = _mindSingle.predict(_predictionObs)
             elif _i > 0:
-                _singlePredict = np.hstack((_singlePredict, _mindSingle.predict(_predictionObs)))
+                _addSinglePredict = _mindSingle.predict(_predictionObs)
+                _addSinglePredict['Prediction'] = _i
+                _singlePredict = np.hstack((_singlePredict, _addSinglePredict))
             if len(_mind.OVR.outputOvr.T) < 3:
                 raise ValueError ('Doesnt make sense with less than three variabels')
                 exit
-            _i += 1
-
-        #self.assertEqual(_mind.predict(_predictionObs).tolist(), _singlePredict.tolist())
         
+            _i += 1
+            
+        """VISUAL CONFIRMATION. TEST IF THERE ARE SIGNIFICANT CHANGES IN THE PREDICTIONS WHEN COMPARING OVR AND BIN"""
+        #print sigmoid(np.dot(sigmoid(np.dot(self.inputM, _mindSingle.Feeder.inputWeights)), _mindSingle.Feeder.hiddenOneWeights))
+        print _singlePredict
+        print '----------------------'
+        print _mind.predict(_predictionObs)
+        #print _mind.Feeder.inputWeights.
+        
+        
+        #self.assertEqual(_mind.predict(_predictionObs), _singlePredict.tolist())
+    """  
     def test_ovr_predict(self):
         self.assign_io_data()
         #OVR
@@ -97,7 +112,7 @@ class TestOvrMindy(unittest.TestCase):
         _mind.train(_trainingIt)
         _predictionObs = [1,1,1] #remember the bias beta_0
         self.assertRaises(_mind.predict(_predictionObs))
-        
+    """    
 if __name__ == "__main__":
     unittest.main()
     
