@@ -16,7 +16,6 @@ class Feeder():
         """Constructor"""
         self.mindy = mindy
         
-    
     def randomWeights(self):
         """If first iteration, this creates random input weights"""
         _mu, _sigma = 0, 0.1 # mean and standard deviation
@@ -32,7 +31,6 @@ class Feeder():
         self.hiddenLayer = sigmoid(self.inputToHiddenOne) #notation a^(2) nXp layer (Activity of each synaps)
         self.hiddenOneToOutput =  np.dot(self.hiddenLayer, self.hiddenOneWeights) #notation z^(3) nXp layer pX1 weights
         self.predictedOutput = sigmoid(self.hiddenOneToOutput) #notation yhat nX1 outputs
-        
         self.residual = np.array(y - self.predictedOutput) #Predition error nX1 residuals
         
     def feedBackwards(self, learningRate, _numgrad = False):

@@ -5,8 +5,6 @@ from lib.ovr import OVR
 from lib.helper.functions import sigmoid, costFunction
 from lib.predictor import Predictor
 
-
-
 class Mindy():
     """Class for a simple neural network, Still under construction. NB: Only one hidden layer"""
     def __init__(self, inputData, outputData, neurons, learningRate, **kwargs):
@@ -34,11 +32,9 @@ class Mindy():
         except Exception as err:
             traceback.print_exc()
     
-  
     def train(self, _iterations):
         """Thinker for the mind""" 
         try:
-
             if self.ovr:
                 self.yCats = self.OVR.yCats
                 _i = 0
@@ -67,9 +63,6 @@ class Mindy():
                 self.Feeder.randomWeights()
                 self.trainingIterations(_iterations)
 
-
-
-
         except Exception as err:
             traceback.print_exc()
 
@@ -88,8 +81,7 @@ class Mindy():
                 traceback.print_exc()
                 break
             _i += 1
-            
-            
+             
     def predict(self, _input):
         """Using the weights and predicting the output"""
         if self.ovr:
@@ -102,46 +94,16 @@ class Mindy():
                         
                     elif _i > 0:
                         _hiddenToOutput = np.hstack((_hiddenToOutput, _predict.calcOutput(_input, self.weightsOvr[_i, :, :], self.hiddenOneWeightsOvr[_i, :, :])))
-                    _i += 1
-                    
+                    _i += 1  
                 except Exception as err:
                     traceback.print_exc()
-                    raise ValueError('Error: %s -Input for prediction does not match number of input variables in the network' %(err))
-            print _hiddenToOutput
-
-            _predVal = {'Prediction' : 0, 'Likelihood': 0}
-            _index = self.OVR.unique
-            if len(_hiddenToOutput.T) == len(_index):
-                for _i, _j in zip(_hiddenToOutput.T, _index):
-                    if 0.5 <= _i and 1 >= _i:
-                        
-                        if _j > 0: #We are only returning the highest predicted value
-                            _predVal['Prediction'], _predVal['Likelihood'] = _j, round(_i.item(), 3) 
-                        elif _predVal['Prediction'] != 0 and _predVal['Likelihood'] < _i:
-                            _predVal['Prediction'], _predVal['Likelihood'] = _j, round(_i.item(), 3)
-                        elif _predVal['Prediction'] != 0 and _predVal['Likelihood'] == _i:
-                            raise ValueError('Prediction error, two values are predicted equally')
-                        
-                        print _j
-                    elif _j == 0 and _i < 0.5:
-                        _predVal['Likelihood'] = round(_i.item(), 3)
-                    
-            else:
-                raise ValueError('Predction problem, trying to predict a value, that doesnt exist')
-        
-                        
-                    #Add the looping to choose the highest value if it is larger than 0.5, otherwise choose 0 sa prediction value
+                    raise ValueError('Error: %s -Input for prediction does not match number of input variables in the network' %(err)) 
+            _predVal = _predict.chooseOvrPrediction(_hiddenToOutput)                  
+        #Add the looping to choose the highest value if it is larger than 0.5, otherwise choose 0 sa prediction value
         elif not self.ovr:
-            try: 
-                _hiddenToOutput = Predictor(self).calcOutput(_input, self.Feeder.inputWeights, self.Feeder.hiddenOneWeights)
-                _predVal = {'Prediction' : 0, 'Likelihood': 0}
-                if _hiddenToOutput < 0.5:
-                    _predVal['Likelihood'] = round(_hiddenToOutput.item(), 3)
-                elif _hiddenToOutput >= 0.5:
-                    _predVal['Prediction'], _predVal['Likelihood'] = 1, round(_hiddenToOutput.item(), 3)
-            except Exception as err:
-                traceback.print_exc()
-                raise ValueError('Error: %s - Input for prediction does not match number of input variables in the network' %(err))
+            _predict = Predictor(self)
+            _hiddenToOutput = _predict.calcOutput(_input, self.Feeder.inputWeights, self.Feeder.hiddenOneWeights)
+            _predVal = _predict.chooseBinPrediction(_hiddenToOutput)
         return _predVal
     
         
