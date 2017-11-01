@@ -1,8 +1,8 @@
-# Mindy 
+# Mindy
 
 A multilayer recurrent neural network - currently with only one hidden layer.
 
-This is a hobby project. It will be updated regularly, since its still under construction.
+This is a hobby project. It will be updated regularly, since its still work in progress.
 
 ## Get started
 
@@ -11,7 +11,7 @@ Clone or fork the repo
 ### 1st step
 Organize a (n x m) numpy array of explanatory variables as input data (vertical rows and horizontal columns) and a (n x 1) numpy array as response variable with output data.
 
-If outout varaiables are not binary, add the OVR module, for One Vs Rest. 
+If output variables are not binary, add the OVR module, for One Vs Rest.
 
 Example with binary output variable
 ```
@@ -46,14 +46,14 @@ Prepare the neural network
 
 Binary output
 ```
-nn = Mindy(inputM, outputM, neurons, learningRate) 
+nn = Mindy(inputM, outputM, neurons, learningRate)
 ```
 
 Categorial output (3 or more categories)
 ```
 nn = Mindy(inputM, outputM, neurons, learningRate, multinomial='ovr')
 ```
-### 4th step 
+### 4th step
 Train the neural network with a given set of iterations
 
 Example
@@ -63,7 +63,7 @@ nn.train(10000)
 
 
 ### 5th step
-Predict an outcome from a given situation 
+Predict an outcome from a given situation
 
 Example (Should predict 1 in the binary case with the I/O variables in step 1)
 ```
@@ -75,4 +75,3 @@ Get the model error (The lower the better)
 ```
 nn.MindyErrors.modelError()
 ```
-
