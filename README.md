@@ -1,6 +1,6 @@
 # Mindy
 
-A multilayer recurrent neural network - currently with only one hidden layer.
+A multilayer recursive neural network - currently with only one hidden layer.
 
 This is a hobby project. It will be updated regularly, since its still work in progress.
 
